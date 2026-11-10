@@ -12,7 +12,8 @@ include kosm.conf
 ```
 
 `from(theme)` sets the colors: foreground and background from white and black (swapped in
-light mode), `color0`..`color7` from the wheel, cyan for URLs and the active border. Choices
+light mode), `color0`..`color7` from the wheel, cyan for URLs and the active border. The
+background takes the theme's `background_alpha`, which `background_opacity` then follows. Choices
 are enums in Zig spelling (`.thin_sparse` for `thin-sparse`); structured values are typed
 (`window_padding_width = .all(10)`, `window_border_width = .{ .pixels = 1 }`); the types live in
 `kosm_kitty.values`. Keyboard and mouse mappings (`map`, `mouse_map`) are not covered yet.

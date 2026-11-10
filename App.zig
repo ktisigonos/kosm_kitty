@@ -66,7 +66,7 @@ pub fn from(theme: kosm.Theme) App {
     const palette = theme.palette;
     const variations = theme.variations;
     const foreground = if (theme.mode == .dark) palette.white else palette.black;
-    const background = if (theme.mode == .dark) palette.black else palette.white;
+    const background = theme.asBackground(if (theme.mode == .dark) palette.black else palette.white);
     var app: App = .{ .bright = variations.lightness.bright };
 
     app.colors.foreground = foreground;
@@ -304,4 +304,16 @@ test "extras follow the options under # extra, repeatable ones as often as given
     app.extra = &.{.{ .path = "font_size", .value = .{ .integer = 12 } }};
     try testing.expectError(error.AppFailed, app.apply(&output));
     try testing.expectEqualStrings("extra 'font_size' and setting 'font_size' write the same key, or one inside the other; keep one", diagnostics.message());
+}
+
+test "the theme's background alpha becomes background_opacity, 1 writes none, and a set opacity wins" {
+    const palette: kosm.Palette = .{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc") };
+    var theme = kosm.Theme.from(palette, .dark);
+    try testing.expectEqual(null, from(theme).withDerived().colors.background_opacity);
+
+    theme.background_alpha = 0.5;
+    var app = from(theme);
+    try testing.expectEqual(0.5, app.withDerived().colors.background_opacity.?);
+    app.colors.background_opacity = 0.9;
+    try testing.expectEqual(0.9, app.withDerived().colors.background_opacity.?);
 }
