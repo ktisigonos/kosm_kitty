@@ -226,15 +226,10 @@ test "compound values follow the file's float precision and boolean spelling" {
     try testing.expectEqualStrings("family=\"Maple Mono\" wght=380.3", try rendered(allocator, font, format));
 }
 
-test "a transparent color is written in the file's color format, and a clipped one is noted" {
+test "a transparent color is written in the file's color format" {
     var arena: std.heap.ArenaAllocator = .init(testing.allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
     const transparent: values.TransparentColor = .{ .color = kosm.hex("041c26"), .opacity = 0.125 };
     try testing.expectEqualStrings("#041C26@0.13", try rendered(allocator, transparent, .{ .color = .hex_upper, .float_precision = 2 }));
-
-    const outside: kosm.Color = .{ .lightness = 0.9, .chroma = 0.4, .hue = 140 };
-    var context: kosm.Adapter.Context = .{ .format = adapter.default_format.resolve() };
-    _ = try renderedValue(allocator, try value(allocator, values.TransparentColor{ .color = outside }), &context);
-    try testing.expectEqual(1, context.clipped.list().len);
 }

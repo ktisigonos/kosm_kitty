@@ -11,8 +11,9 @@ once, at the end of your own `kitty.conf` so its colors win:
 include kosm.conf
 ```
 
-`from(theme)` sets the colors: foreground and background from white and black (swapped in
-light mode), `color0`..`color7` from the wheel, cyan for URLs and the active border. The
+`from(theme)` sets the colors: foreground and background from the theme's roles,
+`color0`..`color7` from the wheel, URLs from the link role, the active border from the accent
+and the bell border from the warning role. The
 background takes the theme's `background_alpha`, which `background_opacity` then follows. Choices
 are enums in Zig spelling (`.thin_sparse` for `thin-sparse`); structured values are typed
 (`window_padding_width = .all(10)`, `window_border_width = .{ .pixels = 1 }`); the types live in

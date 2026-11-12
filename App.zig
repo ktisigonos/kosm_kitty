@@ -59,14 +59,15 @@ pub const repeatable = blk: {
     break :blk final;
 };
 
-/// Colors from the theme: foreground and background from white and black (swapped in
-/// light mode), the 8 terminal colors from the wheel, cyan for URLs and the active border.
+/// Colors from the theme: foreground and background from their roles, the 8 terminal colors
+/// from the wheel, URLs from the link role, the active border from the accent and the bell
+/// border from the warning role.
 /// Every other option is left to kitty.
 pub fn from(theme: kosm.Theme) App {
     const palette = theme.palette;
     const variations = theme.variations;
-    const foreground = if (theme.mode == .dark) palette.white else palette.black;
-    const background = theme.asBackground(if (theme.mode == .dark) palette.black else palette.white);
+    const foreground = theme.roles.foreground;
+    const background = theme.asBackground(theme.roles.background);
     var app: App = .{ .bright = variations.lightness.bright };
 
     app.colors.foreground = foreground;
@@ -82,10 +83,10 @@ pub fn from(theme: kosm.Theme) App {
     app.colors.color6 = palette.cyan;
     app.colors.color7 = palette.white;
 
-    app.mouse.url_color = palette.cyan;
-    app.window.active_border_color = .{ .color = palette.cyan };
-    app.window.inactive_border_color = variations.state.inactive.apply(palette.cyan);
-    app.window.bell_border_color = palette.yellow;
+    app.mouse.url_color = theme.roles.link;
+    app.window.active_border_color = .{ .color = theme.roles.accent };
+    app.window.inactive_border_color = variations.state.inactive.apply(theme.roles.accent);
+    app.window.bell_border_color = theme.roles.warning;
 
     app.tab_bar.active_tab_foreground = foreground;
     app.tab_bar.active_tab_background = variations.state.selected.apply(background);
@@ -196,7 +197,7 @@ test "apply writes the theme's colors and only the options the kosmos set" {
         .app = "kitty",
     };
 
-    const theme = kosm.Theme.from(.{ .black = kosm.hex("041c2680"), .white = kosm.hex("a3c5cc"), .cyan = kosm.hex("268078") }, .dark);
+    const theme = kosm.Theme.from(.{ .palette = .{ .black = kosm.hex("041c2680"), .white = kosm.hex("a3c5cc"), .cyan = kosm.hex("268078") }, .mode = .dark });
     var app = from(theme);
     app.fonts.font_family = .{ .family = "Maple Mono" };
     app.fonts.font_size = 13;
@@ -308,7 +309,7 @@ test "extras follow the options under # extra, repeatable ones as often as given
 
 test "the theme's background alpha becomes background_opacity, 1 writes none, and a set opacity wins" {
     const palette: kosm.Palette = .{ .black = kosm.hex("041c26"), .white = kosm.hex("a3c5cc") };
-    var theme = kosm.Theme.from(palette, .dark);
+    var theme = kosm.Theme.from(.{ .palette = palette, .mode = .dark });
     try testing.expectEqual(null, from(theme).withDerived().colors.background_opacity);
 
     theme.background_alpha = 0.5;
