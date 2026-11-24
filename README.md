@@ -23,8 +23,8 @@ A minimal config can skip `from`: `kosm_kitty.App{}` writes an empty `kosm.conf`
 assign only what you want (`.{ .colors = .{ .background = kosm.hex("041c26") } }`) and kitty
 keeps its defaults for the rest.
 
-After every apply the app reloads every running kitty by sending it SIGUSR1
-(`pkill -USR1 -x kitty`). If no kitty is running, kosm prints a warning and carries on.
+After an apply that changed its file the app reloads every running kitty by sending it SIGUSR1
+(`pkill -USR1 -x kitty`). If no kitty is running, there is nothing to reload.
 
 ## Options the app doesn't cover
 

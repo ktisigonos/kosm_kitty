@@ -95,11 +95,11 @@ pub fn from(theme: kosm.Theme) App {
     return app;
 }
 
-/// Makes every running kitty re-read its config by sending it SIGUSR1. With no kitty
-/// running, kosm only warns.
+/// Makes every running kitty re-read its config by sending it SIGUSR1; with no kitty running
+/// there is nothing to do.
 pub fn reload(self: App, reloader: *kosm.Reloader) !void {
     _ = self;
-    try reloader.run(&.{ "pkill", "-USR1", "-x", "kitty" });
+    try reloader.runIfRunning("kitty", &.{ "pkill", "-USR1", "-x", "kitty" });
 }
 
 /// Writes every set option to `file`, then the extras.
