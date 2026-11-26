@@ -102,6 +102,22 @@ pub fn reload(self: App, reloader: *kosm.Reloader) !void {
     try reloader.runIfRunning("kitty", &.{ "pkill", "-USR1", "-x", "kitty" });
 }
 
+/// What `kosm doctor` checks: the `kitty` command, and kitty.conf including `file`.
+pub fn checkup(self: App) kosm.Checkup {
+    const line = if (std.mem.startsWith(u8, self.file, config_folder)) self.file[config_folder.len..] else self.file;
+    return .{
+        .program = .{ .command = "kitty" },
+        .includes = kosm.keep(kosm.Checkup.Include, &.{.{
+            .file = config_folder ++ "kitty.conf",
+            .line = kosm.keepPrint("include {s}", .{line}),
+            .matches = kosm.keep([]const u8, &.{ kosm.keepPrint("include ./{s}", .{line}), kosm.keepPrint("include {s}", .{self.file}) }),
+        }}),
+    };
+}
+
+/// The folder kitty reads kitty.conf from, which a relative `include` starts from.
+const config_folder = "~/.config/kitty/";
+
 /// Writes every set option to `file`, then the extras.
 pub fn apply(self: App, output: *kosm.Output) !void {
     const derived = self.withDerived();
@@ -317,4 +333,15 @@ test "the theme's background alpha becomes background_opacity, 1 writes none, an
     try testing.expectEqual(0.5, app.withDerived().colors.background_opacity.?);
     app.colors.background_opacity = 0.9;
     try testing.expectEqual(0.9, app.withDerived().colors.background_opacity.?);
+}
+
+test "checkup names kitty.conf's include of the file, relative inside kitty's folder" {
+    const default = (App{}).checkup();
+    try std.testing.expectEqualStrings("kitty", default.program.?.command.?);
+    try std.testing.expectEqualStrings("~/.config/kitty/kitty.conf", default.includes[0].file);
+    try std.testing.expect(default.includes[0].isIn("include kosm.conf\n"));
+    try std.testing.expect(default.includes[0].isIn("include ./kosm.conf\n"));
+    try std.testing.expect(default.includes[0].isIn("include ~/.config/kitty/kosm.conf\n"));
+    const elsewhere = (App{ .file = "~/themes/kitty.conf" }).checkup();
+    try std.testing.expectEqualStrings("include ~/themes/kitty.conf", elsewhere.includes[0].line);
 }
